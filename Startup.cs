@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web;
+using Yarp.ReverseProxy.Abstractions.Config;
 
 namespace MaxMelcher.GHEAADProxy
 {
@@ -29,7 +31,25 @@ namespace MaxMelcher.GHEAADProxy
         public void ConfigureServices(IServiceCollection services)
         {
             // Add the reverse proxy to capability to the server
-            var proxyBuilder = services.AddReverseProxy();
+            var proxyBuilder = services.AddReverseProxy().AddTransforms(builderContext =>
+            {
+                if (!string.IsNullOrEmpty(builderContext.Route.AuthorizationPolicy))
+                {
+                    builderContext.AddRequestTransform(transformContext =>
+                    {
+                        var proxyHeaders = transformContext.ProxyRequest.Headers;
+                        proxyHeaders.Remove("Authorization");
+
+                        if (proxyHeaders.TryGetValues("Token", out var values))
+                        {
+                            proxyHeaders.Remove("Token");
+                            proxyHeaders.TryAddWithoutValidation("Authorization", values);
+                            Console.WriteLine("!!! REWRITING TOKEN");
+                        }
+                        return default;
+                    });
+                }
+            });
             // Initialize the reverse proxy from the "ReverseProxy" section of configuration
             proxyBuilder.LoadFromConfig(Configuration.GetSection("ReverseProxy"));
 
