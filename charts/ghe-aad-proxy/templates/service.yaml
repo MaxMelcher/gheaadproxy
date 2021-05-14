@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ghe-aad-proxy.fullname" . }}
+  labels:
+    {{- include "ghe-aad-proxy.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      protocol: TCP
+      name: https
+  selector:
+    {{- include "ghe-aad-proxy.selectorLabels" . | nindent 4 }}

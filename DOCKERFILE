@@ -1,0 +1,16 @@
+FROM mcr.microsoft.com/dotnet/aspnet:5.0-alpine AS base
+WORKDIR /app
+COPY bin/Release/net5.0/publish/ .
+COPY appsettings.json /app/
+COPY aspnetapp.pfx /app/
+
+ENV ASPNETCORE_ENVIRONMENT="Development"
+ENV ASPNETCORE_URLS="https://+;http://+"
+ENV ASPNETCORE_Kestrel__Certificates__Default__Password="just4fun"
+ENV ASPNETCORE_Kestrel__Certificates__Default__Path=aspnetapp.pfx
+ENV ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+
+EXPOSE 80
+ENTRYPOINT ["dotnet", "MaxMelcher.GHEAADProxy.dll"]
