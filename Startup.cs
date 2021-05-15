@@ -1,12 +1,9 @@
 using System;
-using System.Diagnostics;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -48,12 +45,6 @@ namespace MaxMelcher.GHEAADProxy
 
                         proxyHeaders.TryAddWithoutValidation("AUTHORIZATION", basic);
                         Console.WriteLine("!!! REWROTE TOKEN TO GHE");
-                    }
-                    else if (proxyHeaders.TryGetValues("BASIC", out var basic2))
-                    {
-                        proxyHeaders.Remove("BASIC");
-                        proxyHeaders.TryAddWithoutValidation("AUTHORIZATION", basic);
-                        Console.WriteLine("!!! REWROTE TOKEN TO GHE (OAUTH)");
                     }
                     else if (proxyHeaders.TryGetValues("AUTHORIZATION", out var auth2))
                     {
@@ -200,25 +191,6 @@ namespace MaxMelcher.GHEAADProxy
             {
                 endpoints.MapReverseProxy();
             });
-        }
-    }
-
-    public class Logger
-    {
-        RequestDelegate next;
-
-        public Logger(RequestDelegate next)
-        {
-            this.next = next;
-        }
-
-        public async Task InvokeAsync(HttpContext context)
-        {
-            //Request handling comes here
-            var url = context.Request.Path;
-            var response = context.Response.StatusCode;
-            Console.WriteLine($"### REQUEST {url} - {response}");
-            await next.Invoke(context);
         }
     }
 }
