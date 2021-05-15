@@ -46,6 +46,12 @@ namespace MaxMelcher.GHEAADProxy
                         proxyHeaders.TryAddWithoutValidation("AUTHORIZATION", basic);
                         Console.WriteLine("!!! REWROTE TOKEN TO GHE");
                     }
+                    else if (proxyHeaders.TryGetValues("BASIC", out var basic2))
+                    {
+                        proxyHeaders.Remove("BASIC");
+                        proxyHeaders.TryAddWithoutValidation("AUTHORIZATION", basic);
+                        Console.WriteLine("!!! REWROTE TOKEN TO GHE (OAUTH)");
+                    }
                     else if (proxyHeaders.TryGetValues("AUTHORIZATION", out var auth2))
                     {
                         if (auth2.Any(x => x.ToLower().StartsWith("bearer") && x.Length > 50))
