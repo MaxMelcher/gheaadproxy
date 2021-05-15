@@ -13,6 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web;
 using Yarp.ReverseProxy.Abstractions.Config;
 using System.Linq;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace MaxMelcher.GHEAADProxy
 {
@@ -76,50 +77,59 @@ namespace MaxMelcher.GHEAADProxy
             // Initialize the reverse proxy from the "ReverseProxy" section of configuration
             proxyBuilder.LoadFromConfig(Configuration.GetSection("ReverseProxy"));
 
-            /*
-                        services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-                                        .AddMicrosoftIdentityWebApp(options =>
-                                        {
-                                            Configuration.Bind("AzureAd", options);
-
-                                            options.Events.OnAuthorizationCodeReceived = ctx =>
-                                            {
-                                                Console.WriteLine("### OnAuthorizationCodeReceived");
-                                                return Task.CompletedTask;
-                                            };
-
-                                            options.Events.OnMessageReceived = ctx =>
-                                            {
-                                                Console.WriteLine("### OnMessageReceived");
-                                                return Task.CompletedTask;
-                                            };
-
-                                            options.Events.OnRedirectToIdentityProvider = ctx =>
-                                            {
-                                                Console.WriteLine("### OnRedirectToIdentityProvider");
-                                                return Task.CompletedTask;
-                                            };
-
-                                            options.Events.OnTokenValidated = ctx =>
-                                            {
-                                                Console.WriteLine("### OnTokenValidated");
-                                                return Task.CompletedTask;
-                                            };
-
-                                            options.Events.OnAuthenticationFailed = ctx =>
-                                            {
-                                                Console.WriteLine("### OnAuthenticationFailed");
-                                                return Task.CompletedTask;
-                                            };
-
-                                            options.Events.OnRedirectToIdentityProvider = ctx =>
-                                            {
-                                                Console.WriteLine("### OnRedirectToIdentityProvider");
-                                                return Task.CompletedTask;
-                                            };
-                                        });
-            */
             services.AddMicrosoftIdentityWebApiAuthentication(Configuration, "AzureAd");
+            services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+                            .AddMicrosoftIdentityWebApp(options =>
+                            {
+                                Configuration.Bind("AzureAd", options);
+                                options.Events.OnAuthorizationCodeReceived = ctx =>
+                                {
+                                    Console.WriteLine("### OnAuthorizationCodeReceived");
+                                    return Task.CompletedTask;
+                                };
+
+                                options.Events.OnMessageReceived = ctx =>
+                                {
+                                    Console.WriteLine("### OnMessageReceived");
+                                    return Task.CompletedTask;
+                                };
+
+                                options.Events.OnRedirectToIdentityProvider = ctx =>
+                                {
+                                    Console.WriteLine("### OnRedirectToIdentityProvider");
+                                    return Task.CompletedTask;
+                                };
+
+                                options.Events.OnTokenValidated = ctx =>
+                                {
+                                    Console.WriteLine("### OnTokenValidated");
+                                    return Task.CompletedTask;
+                                };
+
+                                options.Events.OnAuthenticationFailed = ctx =>
+                                {
+                                    Console.WriteLine("### OnAuthenticationFailed");
+                                    return Task.CompletedTask;
+                                };
+
+                                options.Events.OnRedirectToIdentityProvider = ctx =>
+                                {
+                                    Console.WriteLine("### OnRedirectToIdentityProvider");
+                                    return Task.CompletedTask;
+                                };
+
+                                options.ForwardDefaultSelector = (context =>
+                                        {
+                                            var authHeader = context.Request.Headers["MFA"].ToArray();
+                                            if (authHeader.Length > 0 && authHeader[0].ToLower().StartsWith("bearer"))
+                                            {
+                                                return JwtBearerDefaults.AuthenticationScheme;
+                                            }
+
+                                            return OpenIdConnectDefaults.AuthenticationScheme;
+                                        });
+
+                            });
 
             services.AddAuthorization(options =>
             {
@@ -170,7 +180,6 @@ namespace MaxMelcher.GHEAADProxy
                         context.Request.Headers.Add("BASIC", auth);
                     }
                 }
-
                 await next();
             });
 
