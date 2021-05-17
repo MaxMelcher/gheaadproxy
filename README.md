@@ -18,6 +18,8 @@ The following architecture depicts the two authentication flows.
 
 When a user wants to browse to the web-frontend of GitHub Enterprise (GHE) server, the traffic will be filtered on Azure Application Gateway/ Web Application Firewall (WAF). Afterwards, the traffic will hit the proxy. If there is no AUTHORIZATION bearer header, then the proxy will send a HTTP 302 redirect to Azure Active Directory. The user must sign in and depending on the configuration provide the second factor. Then the request is sent back to the WAF, reaches the proxy and then will be sent unmodified to GHE. 
 
+![](images/ghe-web.png)
+
 When a user wants to use the git client, things become more challenging. The client itself is pretty simple on an auth perspective, but provides several options to piggyback additional authorization headers to GHE. The challenge is that GHE does not accept multiple AUTHORIZATION headers, if you provide them it will simply reject the request with a HTTP 400. Additionally the client does not authenticate un-asked. The first request is always unauthenticated, then gets a HTTP 401 by the server, then authenticates with username/password or username/personal access token (PAT).
 
 If the proxy receives an openid connect bearer token, it will validate it. Afterwards it will send the request to GHE without the additional header - multiple or unexpected headers will lead to HTTP 400. 
