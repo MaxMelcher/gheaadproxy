@@ -2,7 +2,7 @@ dotnet publish -c Release
 docker build -t acrmamelch.azurecr.io/gheaadproxy -f DOCKERFILE .
 docker push acrmamelch.azurecr.io/gheaadproxy
 
-docker run --rm -p 8000:80 -p 8001:443 acrmamelch.azurecr.io/gheaadproxy
+docker run --rm -it -p 80:5000 -p 443:5001 --env-file=docker.env acrmamelch.azurecr.io/gheaadproxy
 
 docker login
 
