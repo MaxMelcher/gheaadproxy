@@ -1,5 +1,7 @@
 # GitHub Enterprise Server with Azure Active Directory Authentication (GHEAADPROXY)
 
+Also, see this blog post: https://melcher.dev/2021/05/github-enterprise-server-with-azure-ad-auth-git-mfa/
+
 With GitHub Enterprise Server Version 3.0.6 as self-hosted VM, you can configure SAML authentication backed by Azure Active Directory. 
 This protects the web interface, you get conditional access policies with Multi Factor Authentiction powered by Azure Active Directory. 
 Sessions do expire after a configurable lifetime, then the user must re-authenticate.
